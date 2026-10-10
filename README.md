@@ -1,6 +1,6 @@
 # us-equity-market-calendar
 
-The **NYSE / NASDAQ** trading calendar — holidays (including Good Friday and Juneteenth), **1:00 p.m. early closes**, trading-day navigation, and a DST-aware **is-market-open**. Algorithmic, zero dependencies — every past and future year is correct.
+The **NYSE / NASDAQ** trading calendar — holidays (including Good Friday and Juneteenth), **1:00 p.m. early closes**, unscheduled closures (days of mourning, 9/11, Hurricane Sandy), trading-day navigation, and DST-aware session times. Zero dependencies, accurate from 1971 onward.
 
 ```
 npm install us-equity-market-calendar
@@ -8,36 +8,53 @@ npm install us-equity-market-calendar
 
 ## Why
 
-Python has `pandas_market_calendars`; JavaScript had no maintained equivalent. Existing npm packages give you federal holidays or a stale hard-coded list, but not the *equity* calendar with its early closes and session hours. This computes it from the rules, so it's right for any year.
+Python has `pandas_market_calendars`; JavaScript had no maintained equivalent. Existing npm packages give you federal holidays or a stale hard-coded list, but not the *equity* calendar with its early closes and session hours. This computes it from the rules, including the years the rules changed, so historical backtests and future scheduling both get the right answer.
 
 ```ts
-import { isTradingDay, nextTradingDay, isMarketOpen, sessionClose } from "us-equity-market-calendar";
+import { isTradingDay, nextTradingDay, isMarketOpen, sessionClose, nextMarketOpen } from "us-equity-market-calendar";
 
 isTradingDay("2026-10-12");   // true  — Columbus Day: stocks trade (bonds don't)
 isTradingDay("2026-04-03");   // false — Good Friday: stocks closed (bonds don't)
 
 nextTradingDay("2026-07-02"); // "2026-07-06" — skips the Jul 3 holiday + weekend
 sessionClose("2026-12-24");   // "13:00" — Christmas Eve early close
+isTradingDay("2025-01-09");   // false — Day of Mourning for President Carter
 isMarketOpen(new Date());     // true/false, DST-correct
+nextMarketOpen();             // Date of the next 09:30 ET bell
 ```
 
 ## API
 
-Dates are `"YYYY-MM-DD"` strings or `Date` objects (UTC calendar dates).
+Dates are `"YYYY-MM-DD"` strings or `Date` objects. A `Date` passed as a *date* is read by its **UTC** calendar day; build one with `new Date("2026-07-02")` or `Date.UTC(...)`, not `new Date(2026, 6, 2)`, which is local midnight and can land on the previous UTC day east of Greenwich. Functions that take an *instant* (`isMarketOpen`, `nextMarketOpen`, `nextMarketClose`) convert it to New York time themselves.
 
-- **`getHolidays(year)`** → `{ date, name }[]` — full closures.
-- **`getEarlyCloses(year)`** → `{ date, name, closeTimeET: "13:00" }[]`.
+**Calendar**
+
+- **`getHolidays(year)`** → `{ date, name, kind }[]`, every full closure. `kind` is `"regular"` for a recurring holiday or `"special"` for an unscheduled closure.
+- **`getEarlyCloses(year)`** → `{ date, name, closeTimeET }[]`. `closeTimeET` is `"13:00"` (`"14:00"` before 1993).
 - **`isHoliday(date)`** / **`isEarlyClose(date)`** → the entry or `null`.
-- **`isTradingDay(date)`** — weekday and not a full closure.
-- **`nextTradingDay` / `previousTradingDay` / `addTradingDays(date, n)` / `countTradingDays(from, to)`**.
-- **`sessionClose(date)`** → `"16:00" | "13:00" | null`.
-- **`isMarketOpen(instant?)`** — is the regular session (09:30–16:00 ET, 13:00 on early closes) open at a `Date`, with America/New_York DST handled via the built-in `Intl` API.
+- **`isTradingDay(date)`**: a weekday that is not a full closure.
+- **`nextTradingDay` / `previousTradingDay` / `addTradingDays(date, n)`**.
+- **`getTradingDays(from, to)`** / **`countTradingDays(from, to)`**: both ends inclusive.
 
-Out-of-range years and malformed dates throw `RangeError`.
+**Sessions**
+
+- **`sessionOpen(date)`** / **`sessionClose(date)`** → `"HH:MM"` ET, or `null` on a non-trading day.
+- **`getSession(date)`** → `{ date, open, close, openET, closeET, earlyClose }` with `open`/`close` as `Date` instants, or `null`.
+- **`isMarketOpen(instant?)`**: whether the regular session is open at that instant.
+- **`nextMarketOpen(instant?)`** / **`nextMarketClose(instant?)`** → the next bell strictly after `instant` (default: now).
+
+America/New_York DST is handled through the built-in `Intl` API. Only the regular session is modeled; pre-market and after-hours sessions are not.
+
+Supported years are `MIN_YEAR` (1971) to `MAX_YEAR` (2200). Every function throws `RangeError` for a date outside that range or a malformed one.
 
 ## Correctness
 
-Full-closure and early-close output is verified against the **published NYSE calendar for 2025–2028** — including Good Friday, the Juneteenth start in 2022, the Saturday-New-Year non-observance rule, and the exact early-close pattern (e.g. no July 3 early close in 2026 because it's the observed Independence Day). The rules are algorithmic (nth-weekday, Easter computus, weekend observance), so the same logic extends to any year; intraday open/close is checked across both EST and EDT.
+- **1971 to today** reproduces what the NYSE actually did:
+  - **Rule changes**: MLK Day from 1998, Juneteenth from 2022, Election Day closures through 1980, 2 p.m. half-days before 1993, July half-days from 1995, and the move of the Thursday-July-4 half-day from July 5 to July 3 in 2013.
+  - **Session hours**: a 3:30 p.m. close until October 1974 and a 10:00 a.m. open until September 1985.
+  - **Every unscheduled closure and early close**: presidential funerals and days of mourning, the 1977 blackout, Hurricanes Gloria and Sandy, and 9/11.
+- **Cross-checked**: every trading day and early-close time from 1971 to 2040 is tested against [`exchange_calendars`](https://github.com/gerrymanoim/exchange_calendars), an independent implementation. The 2025–2028 output also matches the NYSE's published calendar.
+- **Future years** apply today's rules. A closure the exchange hasn't announced yet (such as a day of mourning) can't be known in advance, so upgrade when one is announced.
 
 ## Related
 
