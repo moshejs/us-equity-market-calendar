@@ -1,7 +1,7 @@
 {
   "name": "us-equity-market-calendar",
   "version": "1.0.0",
-  "description": "NYSE / NASDAQ trading calendar — holidays (incl. Good Friday & Juneteenth), 1pm early closes, trading-day navigation, and DST-aware is-market-open. Algorithmic, zero dependencies.",
+  "description": "NYSE / NASDAQ trading calendar \u2014 holidays (incl. Good Friday & Juneteenth), 1pm early closes, trading-day navigation, and DST-aware is-market-open. Algorithmic, zero dependencies.",
   "keywords": [
     "nyse",
     "nasdaq",
@@ -29,10 +29,16 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
