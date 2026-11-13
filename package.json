@@ -1,6 +1,6 @@
 {
   "name": "us-equity-market-calendar",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "NYSE / NASDAQ trading calendar — holidays (incl. Good Friday & Juneteenth), 1pm early closes, trading-day navigation, and DST-aware is-market-open. Algorithmic, zero dependencies.",
   "keywords": [
     "nyse",
@@ -13,14 +13,28 @@
     "early-close",
     "stock-market",
     "finance",
-    "settlement"
+    "settlement",
+    "stock-market-holidays",
+    "nyse-holidays",
+    "market-hours",
+    "trading-hours",
+    "exchange-calendar",
+    "business-days",
+    "half-day",
+    "backtesting",
+    "algorithmic-trading",
+    "pandas-market-calendars",
+    "dst",
+    "typescript"
   ],
-  "homepage": "https://moshemalka.com",
+  "homepage": "https://github.com/moshejs/us-equity-market-calendar#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/moshejs/us-equity-market-calendar.git"
   },
-  "bugs": "https://github.com/moshejs/us-equity-market-calendar/issues",
+  "bugs": {
+    "url": "https://github.com/moshejs/us-equity-market-calendar/issues"
+  },
   "author": "Moshe Malka <hello@moshemalka.com> (https://moshemalka.com)",
   "license": "MIT",
   "type": "module",
@@ -51,9 +65,9 @@
     "prepublishOnly": "npm run typecheck && npm run test && npm run build"
   },
   "devDependencies": {
-    "tsup": "^8.5.0",
-    "typescript": "^5.8.0",
-    "vitest": "^3.2.0"
+    "tsup": "^9.0.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": ">=18"
